@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Dumbbell, UtensilsCrossed, ShoppingCart, CheckSquare, Flame } from "lucide-react"
 
-// --- Workout Data ---
 const workoutExercises = [
   { name: "Bench Press", sets: "4x8", weight: "80kg", done: true },
   { name: "Overhead Press", sets: "3x10", weight: "40kg", done: true },
@@ -14,7 +13,6 @@ const workoutExercises = [
   { name: "Tricep Pushdowns", sets: "3x12", weight: "25kg", done: false },
 ]
 
-// --- Meal Data ---
 const todayMeals = [
   { meal: "Breakfast", item: "Oats + banana + protein shake", cals: 520, done: true },
   { meal: "Lunch", item: "Turkey wrap + mixed salad", cals: 650, done: true },
@@ -22,7 +20,6 @@ const todayMeals = [
   { meal: "Dinner", item: "Chicken tikka masala + rice", cals: 720, prep: "40m", done: false },
 ]
 
-// --- Grocery Data ---
 const groceryItems = [
   { item: "Chicken breast (1kg)", checked: true },
   { item: "Basmati rice", checked: true },
@@ -40,7 +37,6 @@ const groceryItems = [
   { item: "Olive oil", checked: false },
 ]
 
-// --- Habits Data ---
 const habits = [
   { name: "Morning meditation", done: true, streak: 12 },
   { name: "8 glasses water", done: true, streak: 5 },
@@ -54,49 +50,59 @@ const habits = [
   { name: "Sleep by 11pm", done: false, streak: 1 },
 ]
 
+/** 4 mini-tiles in the bottom bar -- icon + label + 2 status lines */
 export function HealthCompact() {
-  const workoutDone = workoutExercises.filter(e => e.done).length
-  const groceryChecked = groceryItems.filter(g => g.checked).length
-  const habitsDone = habits.filter(h => h.done).length
+  const workoutDone = workoutExercises.filter((e) => e.done).length
+  const groceryChecked = groceryItems.filter((g) => g.checked).length
+  const habitsDone = habits.filter((h) => h.done).length
 
-  const stats = [
+  const tiles = [
     {
-      icon: <Dumbbell className="size-3" />,
-      label: "Push Day",
-      value: `${workoutDone}/${workoutExercises.length} done`,
+      icon: <Dumbbell className="size-3.5" />,
+      label: "WORKOUT",
+      line1: "Push Day",
+      line2: `${workoutDone}/${workoutExercises.length} done`,
+      active: true,
     },
     {
-      icon: <UtensilsCrossed className="size-3" />,
-      label: "Tikka Masala",
-      value: "40m prep",
+      icon: <UtensilsCrossed className="size-3.5" />,
+      label: "MEALS",
+      line1: "Tikka Masala",
+      line2: "40m prep",
     },
     {
-      icon: <ShoppingCart className="size-3" />,
-      label: `${groceryItems.length} items`,
-      value: `${groceryChecked} checked`,
+      icon: <ShoppingCart className="size-3.5" />,
+      label: "GROCERY",
+      line1: `${groceryItems.length} items`,
+      line2: `${groceryChecked} checked`,
     },
     {
-      icon: <CheckSquare className="size-3" />,
-      label: `${habitsDone}/${habits.length} habits`,
-      value: (
+      icon: <CheckSquare className="size-3.5" />,
+      label: "HABITS",
+      line1: `${habitsDone}/${habits.length} done`,
+      line2: (
         <span className="flex items-center gap-0.5">
           <Flame className="size-2.5 text-accent" />
-          <span>5 streak</span>
+          5 streak
         </span>
       ),
     },
   ]
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-      {stats.map((stat, i) => (
+    <div className="grid h-full grid-cols-4 gap-2">
+      {tiles.map((t, i) => (
         <div
           key={i}
-          className="flex flex-col items-center gap-0.5 rounded border border-border/30 bg-muted/20 px-2 py-1.5 text-center"
+          className={cn(
+            "flex flex-col items-center justify-center gap-0.5 border border-border/30 bg-muted/10 px-1 py-1 text-center",
+            t.active && "border-primary/50"
+          )}
         >
-          <span className="text-primary">{stat.icon}</span>
-          <span className="font-mono text-[10px] font-semibold text-foreground/90">{stat.label}</span>
-          <span className="font-mono text-[9px] text-muted-foreground">{stat.value}</span>
+          <span className="text-primary">{t.icon}</span>
+          <span className="font-display text-[7px] tracking-widest text-primary">{t.label}</span>
+          <span className="font-mono text-[10px] leading-tight text-foreground/90">{t.line1}</span>
+          <span className="font-mono text-[9px] leading-tight text-muted-foreground">{t.line2}</span>
         </div>
       ))}
     </div>
@@ -121,7 +127,7 @@ export function HealthExpanded() {
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="workout" className="max-h-48 overflow-y-auto">
+      <TabsContent value="workout" className="max-h-64 overflow-y-auto">
         <div className="mb-2 flex items-center justify-between font-mono text-[10px]">
           <span className="text-primary">PUSH DAY</span>
           <span className="text-muted-foreground">{workoutExercises.filter(e => e.done).length}/{workoutExercises.length} complete</span>
@@ -129,7 +135,7 @@ export function HealthExpanded() {
         <div className="space-y-1">
           {workoutExercises.map((ex, i) => (
             <div key={i} className={cn(
-              "flex items-center gap-2 rounded border-l-2 py-1 pl-2 font-mono text-xs",
+              "flex items-center gap-2 border-l-2 py-1 pl-2 font-mono text-xs",
               ex.done ? "border-l-green-500 text-muted-foreground" : "border-l-primary/30 text-foreground/90"
             )}>
               <span className={cn("size-3 shrink-0 rounded-sm border", ex.done ? "border-green-500 bg-green-500/20" : "border-muted-foreground/30")} />
@@ -141,7 +147,7 @@ export function HealthExpanded() {
         </div>
       </TabsContent>
 
-      <TabsContent value="meals" className="max-h-48 overflow-y-auto">
+      <TabsContent value="meals" className="max-h-64 overflow-y-auto">
         <div className="mb-2 flex items-center justify-between font-mono text-[10px]">
           <span className="text-primary">{"TODAY'S MEALS"}</span>
           <span className="text-muted-foreground">{todayMeals.reduce((a, m) => a + m.cals, 0)} cal total</span>
@@ -149,7 +155,7 @@ export function HealthExpanded() {
         <div className="space-y-1">
           {todayMeals.map((m, i) => (
             <div key={i} className={cn(
-              "flex items-center gap-2 rounded border-l-2 py-1 pl-2 font-mono text-xs",
+              "flex items-center gap-2 border-l-2 py-1 pl-2 font-mono text-xs",
               m.done ? "border-l-green-500 text-muted-foreground" : "border-l-accent/30 text-foreground/90"
             )}>
               <span className="w-14 shrink-0 text-[9px] font-semibold uppercase text-primary">{m.meal}</span>
@@ -161,7 +167,7 @@ export function HealthExpanded() {
         </div>
       </TabsContent>
 
-      <TabsContent value="grocery" className="max-h-48 overflow-y-auto">
+      <TabsContent value="grocery" className="max-h-64 overflow-y-auto">
         <div className="mb-2 flex items-center justify-between font-mono text-[10px]">
           <span className="text-primary">GROCERY LIST</span>
           <span className="text-muted-foreground">{groceryItems.filter(g => g.checked).length}/{groceryItems.length} checked</span>
@@ -182,7 +188,7 @@ export function HealthExpanded() {
         </div>
       </TabsContent>
 
-      <TabsContent value="habits" className="max-h-48 overflow-y-auto">
+      <TabsContent value="habits" className="max-h-64 overflow-y-auto">
         <div className="mb-2 flex items-center justify-between font-mono text-[10px]">
           <span className="text-primary">DAILY HABITS</span>
           <span className="flex items-center gap-1 text-accent">

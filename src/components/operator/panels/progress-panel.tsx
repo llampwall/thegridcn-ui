@@ -1,7 +1,17 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Flame, CheckCircle, ListChecks, Dumbbell, TrendingUp, TrendingDown, Trophy, Star } from "lucide-react"
+import {
+  Flame,
+  CheckCircle,
+  ListChecks,
+  Dumbbell,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Trophy,
+  Star,
+} from "lucide-react"
 
 interface ProgressStat {
   icon: React.ReactNode
@@ -12,10 +22,10 @@ interface ProgressStat {
 }
 
 const stats: ProgressStat[] = [
-  { icon: <Flame className="size-4" />, value: 45, label: "Longest Streak", trend: "up", trendValue: "+3" },
-  { icon: <CheckCircle className="size-4" />, value: "78%", label: "Weekly Habits", trend: "up", trendValue: "+5%" },
-  { icon: <ListChecks className="size-4" />, value: 14, label: "Directives Done", trend: "down", trendValue: "-2" },
-  { icon: <Dumbbell className="size-4" />, value: 3, label: "Workout Days", trend: "neutral" },
+  { icon: <Flame className="size-3.5" />, value: 45, label: "Longest Streak", trend: "up", trendValue: "+3" },
+  { icon: <CheckCircle className="size-3.5" />, value: "78%", label: "Weekly Habits", trend: "up", trendValue: "+5%" },
+  { icon: <ListChecks className="size-3.5" />, value: 14, label: "Directives Done", trend: "up", trendValue: "+2" },
+  { icon: <Dumbbell className="size-3.5" />, value: 3, label: "Workout Days", trend: "neutral" },
 ]
 
 const streakLeaderboard = [
@@ -42,40 +52,36 @@ const milestones = [
   { title: "30 workout days", progress: 40, icon: <Dumbbell className="size-3" /> },
 ]
 
-function StatTile({ stat, compact = false }: { stat: ProgressStat; compact?: boolean }) {
-  return (
-    <div className={cn(
-      "flex flex-col items-center rounded border border-border/30 bg-muted/20 text-center",
-      compact ? "gap-0.5 px-2 py-1.5" : "gap-1 px-3 py-2"
-    )}>
-      <span className="text-primary">{stat.icon}</span>
-      <div className="flex items-center gap-1">
-        <span className={cn(
-          "font-display font-bold text-foreground",
-          compact ? "text-sm" : "text-lg"
-        )}>
-          {stat.value}
-        </span>
-        {stat.trend !== "neutral" && (
-          <span className={cn(
-            "flex items-center text-[9px]",
-            stat.trend === "up" ? "text-green-400" : "text-red-400"
-          )}>
-            {stat.trend === "up" ? <TrendingUp className="size-2.5" /> : <TrendingDown className="size-2.5" />}
-            {stat.trendValue}
-          </span>
-        )}
-      </div>
-      <span className="font-mono text-[9px] text-muted-foreground">{stat.label}</span>
-    </div>
-  )
+function TrendIcon({ trend }: { trend: "up" | "down" | "neutral" }) {
+  if (trend === "up") return <TrendingUp className="size-2.5" />
+  if (trend === "down") return <TrendingDown className="size-2.5" />
+  return <Minus className="size-2.5" />
 }
 
+/** 4 stat boxes in a compact row, number is hero */
 export function ProgressCompact() {
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-      {stats.map((stat, i) => (
-        <StatTile key={i} stat={stat} compact />
+    <div className="grid h-full grid-cols-4 gap-2">
+      {stats.map((s, i) => (
+        <div
+          key={i}
+          className="flex flex-col items-center justify-center gap-0.5 border border-border/30 bg-muted/10 px-1 py-1 text-center"
+        >
+          <span className="text-primary">{s.icon}</span>
+          <span className="font-display text-base font-bold leading-none text-foreground">{s.value}</span>
+          <span className="font-mono text-[8px] leading-tight text-muted-foreground">{s.label}</span>
+          <span
+            className={cn(
+              "flex items-center gap-0.5 font-mono text-[9px] leading-none",
+              s.trend === "up" && "text-green-400",
+              s.trend === "down" && "text-red-400",
+              s.trend === "neutral" && "text-muted-foreground"
+            )}
+          >
+            <TrendIcon trend={s.trend} />
+            {s.trendValue ?? "= same"}
+          </span>
+        </div>
       ))}
     </div>
   )
@@ -83,16 +89,28 @@ export function ProgressCompact() {
 
 export function ProgressExpanded() {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Headline stats */}
       <div className="grid grid-cols-4 gap-2">
-        {stats.map((stat, i) => (
-          <StatTile key={i} stat={stat} />
+        {stats.map((s, i) => (
+          <div key={i} className="flex flex-col items-center gap-1 border border-border/30 bg-muted/10 px-3 py-2 text-center">
+            <span className="text-primary">{s.icon}</span>
+            <span className="font-display text-xl font-bold text-foreground">{s.value}</span>
+            <span className="font-mono text-[9px] text-muted-foreground">{s.label}</span>
+            <span className={cn(
+              "flex items-center gap-0.5 font-mono text-[10px]",
+              s.trend === "up" && "text-green-400",
+              s.trend === "down" && "text-red-400",
+              s.trend === "neutral" && "text-muted-foreground"
+            )}>
+              <TrendIcon trend={s.trend} />
+              {s.trendValue ?? "= same"}
+            </span>
+          </div>
         ))}
       </div>
 
-      {/* Two columns: streak leaderboard + weekly chart */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* Streak leaderboard */}
         <div>
           <div className="mb-1.5 flex items-center gap-1.5">
@@ -117,7 +135,7 @@ export function ProgressExpanded() {
           </div>
         </div>
 
-        {/* Weekly completion chart (bar chart) */}
+        {/* Weekly completion chart */}
         <div>
           <div className="mb-1.5 flex items-center gap-1.5">
             <Star className="size-3 text-primary" />
@@ -147,14 +165,14 @@ export function ProgressExpanded() {
         <div className="mb-1.5 font-display text-[10px] tracking-wider text-primary">MILESTONES</div>
         <div className="grid grid-cols-3 gap-2">
           {milestones.map((m, i) => (
-            <div key={i} className="space-y-1 rounded border border-border/30 bg-muted/10 p-2">
+            <div key={i} className="space-y-1 border border-border/30 bg-muted/10 p-2">
               <div className="flex items-center gap-1 font-mono text-[10px] text-foreground/90">
                 <span className="text-primary">{m.icon}</span>
                 {m.title}
               </div>
-              <div className="relative h-1.5 overflow-hidden rounded-full bg-muted/30">
+              <div className="relative h-1.5 overflow-hidden bg-muted/30">
                 <div
-                  className="h-full rounded-full bg-primary/60 transition-all"
+                  className="h-full bg-primary/60 transition-all"
                   style={{ width: `${m.progress}%` }}
                 />
               </div>

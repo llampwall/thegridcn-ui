@@ -2,91 +2,78 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { ChevronDown, X } from "lucide-react"
+import { X } from "lucide-react"
 
-interface OperatorPanelProps {
-  id: string
+interface PanelModalProps {
   title: string
-  badge?: number | string
   icon?: React.ReactNode
-  expanded: boolean
-  onToggle: (id: string) => void
-  compactContent: React.ReactNode
-  expandedContent: React.ReactNode
-  className?: string
+  badge?: number | string
+  open: boolean
+  onClose: () => void
+  children: React.ReactNode
 }
 
-export function OperatorPanel({
-  id,
-  title,
-  badge,
-  icon,
-  expanded,
-  onToggle,
-  compactContent,
-  expandedContent,
-  className,
-}: OperatorPanelProps) {
+/** Full-screen modal overlay for expanded panel content */
+export function PanelModal({ title, icon, badge, open, onClose, children }: PanelModalProps) {
+  React.useEffect(() => {
+    if (!open) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
+    }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [open, onClose])
+
+  if (!open) return null
+
   return (
     <div
-      data-panel={id}
-      className={cn(
-        "relative border border-primary/30 bg-card/80 backdrop-blur-sm transition-all duration-300",
-        expanded && "col-span-full border-primary/50 glow-sm",
-        !expanded && "hover:border-primary/50",
-        className
-      )}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={onClose}
     >
-      {/* Corner brackets */}
-      <div className="absolute -left-px -top-px h-3 w-3 border-l-2 border-t-2 border-primary" />
-      <div className="absolute -right-px -top-px h-3 w-3 border-r-2 border-t-2 border-primary" />
-      <div className="absolute -bottom-px -left-px h-3 w-3 border-b-2 border-l-2 border-primary" />
-      <div className="absolute -bottom-px -right-px h-3 w-3 border-b-2 border-r-2 border-primary" />
-
-      {/* Grid pattern overlay */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage:
-            "linear-gradient(var(--primary) 1px, transparent 1px), linear-gradient(90deg, var(--primary) 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
-        }}
-      />
-
-      {/* Header */}
-      <button
-        onClick={() => onToggle(id)}
-        className="relative flex w-full cursor-pointer items-center justify-between border-b border-primary/20 px-3 py-1.5 transition-colors hover:bg-primary/5"
+        className="relative h-[80vh] w-[80vw] border border-primary/40 bg-card/95 backdrop-blur-md animate-in slide-in-from-bottom-2 fade-in duration-300"
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2">
-          {icon && <span className="text-primary">{icon}</span>}
-          <span className="font-display text-[10px] tracking-[0.15em] text-primary">
-            {title}
-          </span>
-          {badge !== undefined && (
-            <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary/20 px-1 font-mono text-[9px] text-primary">
-              {badge}
-            </span>
-          )}
-        </div>
-        <span className="text-primary/60">
-          {expanded ? (
-            <X className="size-3.5" />
-          ) : (
-            <ChevronDown className="size-3.5" />
-          )}
-        </span>
-      </button>
+        {/* HUD corner brackets */}
+        <div className="absolute -left-px -top-px h-5 w-5 border-l-2 border-t-2 border-primary" />
+        <div className="absolute -right-px -top-px h-5 w-5 border-r-2 border-t-2 border-primary" />
+        <div className="absolute -bottom-px -left-px h-5 w-5 border-b-2 border-l-2 border-primary" />
+        <div className="absolute -bottom-px -right-px h-5 w-5 border-b-2 border-r-2 border-primary" />
 
-      {/* Content */}
-      <div className="relative">
-        {expanded ? (
-          <div className="animate-in fade-in slide-in-from-top-1 duration-200 p-3">
-            {expandedContent}
+        {/* Grid overlay */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage:
+              "linear-gradient(var(--primary) 1px, transparent 1px), linear-gradient(90deg, var(--primary) 1px, transparent 1px)",
+            backgroundSize: "20px 20px",
+          }}
+        />
+
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-primary/20 px-4 py-2">
+          <div className="flex items-center gap-2">
+            {icon && <span className="text-primary">{icon}</span>}
+            <span className="font-display text-xs tracking-[0.15em] text-primary">{title}</span>
+            {badge !== undefined && (
+              <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary/20 px-1 font-mono text-[9px] text-primary">
+                {badge}
+              </span>
+            )}
           </div>
-        ) : (
-          <div className="p-3">{compactContent}</div>
-        )}
+          <button
+            onClick={onClose}
+            className="flex size-6 items-center justify-center text-muted-foreground transition-colors hover:text-primary"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="h-[calc(100%-40px)] overflow-y-auto p-4">
+          {children}
+        </div>
       </div>
     </div>
   )
