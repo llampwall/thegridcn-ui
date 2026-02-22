@@ -476,6 +476,15 @@
 .input-tron:focus {
   border-color: var(--glow);
   box-shadow:
-    0 0 3px var(--glow),
-    0 0 6px var(--glow-muted);
-}
+  0 0 3px var(--glow),
+  0 0 6px var(--glow-muted);
+  }
+
+  /* Scrollbar hide utility */
+  .scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+  display: none;
+  }

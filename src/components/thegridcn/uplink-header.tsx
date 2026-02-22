@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 
 export interface UplinkHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   leftText: string
-  rightText?: string
+  rightText?: React.ReactNode
   variant?: "primary" | "cyan" | "orange" | "blue" | "purple" | "green" | "amber"
 }
 

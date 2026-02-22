@@ -2,16 +2,19 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { BriefStrip } from "./brief-strip"
 import { PanelModal } from "./operator-panel"
-import { ScheduleCompact, ScheduleExpanded } from "./panels/schedule-panel"
-import { CommsCompact, CommsExpanded } from "./panels/comms-panel"
-import {
-  DirectivesCompact,
-  DirectivesExpanded,
-} from "./panels/directives-panel"
-import { HealthCompact, HealthExpanded } from "./panels/health-panel"
-import { ProgressCompact, ProgressExpanded } from "./panels/progress-panel"
+import { ScheduleRail } from "./panels/schedule-panel"
+import { DirectivesPanel } from "./panels/directives-panel"
+import { CommsPanel } from "./panels/comms-panel"
+import { HealthPanel } from "./panels/health-panel"
+import { ProgressPanel } from "./panels/progress-panel"
+import { ScheduleExpanded } from "./panels/schedule-panel"
+import { DirectivesExpanded } from "./panels/directives-panel"
+import { CommsExpanded } from "./panels/comms-panel"
+import { HealthExpanded } from "./panels/health-panel"
+import { ProgressExpanded } from "./panels/progress-panel"
+import { GridScanOverlay } from "@/components/thegridcn/grid-scan-overlay"
+import { StatusBar } from "@/components/thegridcn/status-bar"
 import {
   Calendar,
   MessageSquare,
@@ -22,69 +25,62 @@ import {
 
 type PanelId = "schedule" | "comms" | "directives" | "health" | "progress"
 
-/** Reusable HUD-style panel frame */
-function HUDPanel({
-  id,
-  title,
-  icon,
-  badge,
-  children,
-  onHeaderClick,
-  className,
-  hero,
-}: {
-  id: string
-  title: string
-  icon: React.ReactNode
-  badge?: number | string
-  children: React.ReactNode
-  onHeaderClick: (id: string) => void
-  className?: string
-  hero?: boolean
-}) {
+/* ── Live Clock ────────────────────────────────────── */
+function LiveClock() {
+  const [now, setNow] = React.useState(new Date())
+
+  React.useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  const time = now.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  })
+  const day = now.toLocaleDateString("en-US", { weekday: "long" })
+  const date = now.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  })
+
+  const dayProgress = ((now.getHours() * 60 + now.getMinutes()) / 1440) * 100
+
   return (
-    <div
-      className={cn(
-        "relative flex flex-col border border-primary/30 bg-card/80 backdrop-blur-sm transition-all duration-200 hover:border-primary/50",
-        hero && "glow-sm border-primary/40",
-        className
-      )}
-    >
-      {/* Corner brackets */}
-      <div className="absolute -left-px -top-px h-3 w-3 border-l-2 border-t-2 border-primary" />
-      <div className="absolute -right-px -top-px h-3 w-3 border-r-2 border-t-2 border-primary" />
-      <div className="absolute -bottom-px -left-px h-3 w-3 border-b-2 border-l-2 border-primary" />
-      <div className="absolute -bottom-px -right-px h-3 w-3 border-b-2 border-r-2 border-primary" />
-
-      {/* Grid overlay */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.02]"
-        style={{
-          backgroundImage:
-            "linear-gradient(var(--primary) 1px, transparent 1px), linear-gradient(90deg, var(--primary) 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
-        }}
-      />
-
-      {/* Header (clickable) */}
-      <button
-        onClick={() => onHeaderClick(id)}
-        className="relative flex w-full shrink-0 cursor-pointer items-center justify-between border-b border-primary/20 px-2.5 py-1 transition-colors hover:bg-primary/5"
-      >
-        <div className="flex items-center gap-1.5">
-          <span className="text-primary">{icon}</span>
-          <span className="font-display text-[9px] tracking-[0.15em] text-primary">{title}</span>
-          {badge !== undefined && (
-            <span className="inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-primary/20 px-1 font-mono text-[8px] text-primary">
-              {badge}
-            </span>
-          )}
+    <div className="flex flex-col items-center justify-center py-3 lg:py-4">
+      {/* Big time */}
+      <div className="font-mono text-5xl font-light tracking-wider text-primary glow-text lg:text-7xl">
+        {time}
+      </div>
+      {/* Day */}
+      <div className="mt-1 font-display text-lg tracking-[0.3em] text-foreground/90 lg:text-xl">
+        {day.toUpperCase()}
+      </div>
+      {/* Date */}
+      <div className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground">
+        {date.toUpperCase()}
+      </div>
+      {/* Day progress bar */}
+      <div className="mt-3 w-full max-w-xs">
+        <div className="relative h-1 overflow-hidden rounded-full bg-muted/40">
+          <div
+            className="h-full bg-gradient-to-r from-primary/60 to-primary transition-all"
+            style={{ width: `${dayProgress}%` }}
+          />
+          <div
+            className="absolute top-1/2 h-2.5 w-0.5 -translate-y-1/2 bg-primary glow-sm"
+            style={{ left: `${dayProgress}%` }}
+          />
         </div>
-        <span className="font-mono text-[8px] text-muted-foreground/60">EXPAND</span>
-      </button>
-
-      {/* Content */}
-      <div className="relative flex-1 overflow-hidden p-2">{children}</div>
+        <div className="mt-1 flex justify-between font-mono text-[8px] tracking-widest text-muted-foreground/50">
+          <span>00:00</span>
+          <span className="text-primary/70">{Math.round(dayProgress)}% OF DAY</span>
+          <span>23:59</span>
+        </div>
+      </div>
     </div>
   )
 }
@@ -99,13 +95,6 @@ export function OperatorDashboard() {
   const closePanel = React.useCallback(() => {
     setModalPanel(null)
   }, [])
-
-  const handleBriefClick = React.useCallback(
-    (panelId: string) => {
-      setModalPanel(panelId as PanelId)
-    },
-    []
-  )
 
   const modalConfig: Record<
     PanelId,
@@ -149,102 +138,90 @@ export function OperatorDashboard() {
       data-theme="ares"
       data-tron-intensity="medium"
     >
-      {/* Background grid pattern */}
-      <div
-        className="pointer-events-none fixed inset-0 opacity-[0.015]"
-        style={{
-          backgroundImage:
-            "linear-gradient(var(--primary) 1px, transparent 1px), linear-gradient(90deg, var(--primary) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      />
+      {/* Subtle scan overlay on the whole page */}
+      <GridScanOverlay gridSize={80} scanSpeed={12} className="z-0" />
 
-      {/* Brief Strip -- 40px fixed top */}
-      <BriefStrip onItemClick={handleBriefClick} />
-
-      {/* ======= MAIN COCKPIT GRID ======= */}
-      {/* Desktop: 3 col asymmetric (20% / 45% / 35%) + bottom bar */}
-      {/* Mobile: stacked vertically */}
-      <div className="relative flex flex-1 flex-col overflow-hidden p-1.5 lg:p-2">
-        {/* --- TOP ROW: Schedule | Directives (hero) | Comms --- */}
-        <div className="flex flex-1 flex-col gap-1.5 lg:flex-row lg:gap-2">
-          {/* SCHEDULE -- narrow left rail */}
-          <HUDPanel
-            id="schedule"
-            title="SCHEDULE"
-            icon={<Calendar className="size-3" />}
-            badge={9}
-            onHeaderClick={openPanel}
-            className="lg:w-[20%]"
-          >
-            <ScheduleCompact />
-          </HUDPanel>
-
-          {/* DIRECTIVES -- hero center panel, widest */}
-          <HUDPanel
-            id="directives"
-            title="DIRECTIVES"
-            icon={<Target className="size-3" />}
-            badge={7}
-            onHeaderClick={openPanel}
-            className="lg:w-[45%]"
-            hero
-          >
-            <DirectivesCompact />
-          </HUDPanel>
-
-          {/* COMMS -- right rail */}
-          <HUDPanel
-            id="comms"
-            title="COMMS"
-            icon={<MessageSquare className="size-3" />}
-            badge={7}
-            onHeaderClick={openPanel}
-            className="lg:w-[35%]"
-          >
-            <CommsCompact />
-          </HUDPanel>
+      {/* ════════ MAIN LAYOUT ════════
+          Left: Schedule rail (full height, narrow)
+          Right: Everything else stacked
+      */}
+      <div className="relative z-10 flex flex-1 overflow-hidden">
+        {/* ── LEFT: Schedule Rail ── */}
+        <div className="hidden w-[220px] shrink-0 border-r border-primary/20 lg:block xl:w-[260px]">
+          <ScheduleRail onExpand={() => openPanel("schedule")} />
         </div>
 
-        {/* --- BOTTOM BAR: Health (60%) | Progress (40%) --- */}
-        <div className="mt-1.5 flex h-[120px] shrink-0 flex-col gap-1.5 lg:mt-2 lg:flex-row lg:gap-2">
-          <HUDPanel
-            id="health"
-            title="HEALTH"
-            icon={<Heart className="size-3" />}
-            onHeaderClick={openPanel}
-            className="lg:w-[60%]"
-          >
-            <HealthCompact />
-          </HUDPanel>
+        {/* ── RIGHT: Main content area ── */}
+        <div className="flex flex-1 flex-col overflow-hidden">
 
-          <HUDPanel
-            id="progress"
-            title="PROGRESS"
-            icon={<TrendingUp className="size-3" />}
-            onHeaderClick={openPanel}
-            className="lg:w-[40%]"
-          >
-            <ProgressCompact />
-          </HUDPanel>
-        </div>
-      </div>
-
-      {/* ======= FOOTER STATUS BAR ======= */}
-      <div className="relative shrink-0 border-t border-primary/20 bg-card/40 px-3 py-0.5">
-        <div className="flex items-center justify-between font-mono text-[8px] tracking-wider text-muted-foreground">
-          <span>OPERATOR v1.0</span>
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-              ALL SYSTEMS NOMINAL
-            </span>
-            <span className="text-primary/60">ARES PROTOCOL</span>
+          {/* ── ROW 1: Clock Hero ── */}
+          <div className="relative shrink-0 border-b border-primary/20 bg-card/40">
+            <LiveClock />
+            {/* Accent glow line */}
+            <div className="absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
           </div>
+
+          {/* ── ROW 2: Main grid (the meat) ── */}
+          <div className="flex flex-1 overflow-hidden">
+
+            {/* LEFT COLUMN: Directives (big) + Comms (compact) */}
+            <div className="flex flex-1 flex-col overflow-hidden">
+              {/* Directives -- takes ~65% of this column */}
+              <div className="flex-[3] overflow-hidden border-b border-primary/20">
+                <DirectivesPanel onExpand={() => openPanel("directives")} />
+              </div>
+              {/* Comms -- takes ~35% */}
+              <div className="flex-[2] overflow-hidden">
+                <CommsPanel onExpand={() => openPanel("comms")} />
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN: Progress (big, rewarding) + Health */}
+            <div className="flex w-[280px] shrink-0 flex-col overflow-hidden border-l border-primary/20 xl:w-[340px]">
+              {/* Progress -- top, visually dominant */}
+              <div className="flex-[3] overflow-hidden border-b border-primary/20">
+                <ProgressPanel onExpand={() => openPanel("progress")} />
+              </div>
+              {/* Health -- bottom strip */}
+              <div className="flex-[2] overflow-hidden">
+                <HealthPanel onExpand={() => openPanel("health")} />
+              </div>
+            </div>
+          </div>
+
+          {/* ── FOOTER STATUS BAR ── */}
+          <StatusBar
+            variant="default"
+            className="shrink-0 border-t border-primary/20 bg-card/40 py-1"
+            leftContent={
+              <div className="flex items-center gap-3 font-mono text-[8px] tracking-wider">
+                <span className="flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                  ALL SYSTEMS NOMINAL
+                </span>
+                <span className="text-muted-foreground/40">|</span>
+                <span className="text-primary/60">ARES PROTOCOL ACTIVE</span>
+              </div>
+            }
+            rightContent={
+              <span className="font-mono text-[8px] tracking-wider text-muted-foreground/40">
+                OPERATOR v2.0
+              </span>
+            }
+          />
         </div>
       </div>
 
-      {/* ======= MODAL OVERLAY ======= */}
+      {/* Mobile schedule toggle (visible on small screens) */}
+      <button
+        onClick={() => openPanel("schedule")}
+        className="fixed bottom-4 left-4 z-30 flex size-10 items-center justify-center rounded-full border border-primary/50 bg-card/90 text-primary backdrop-blur-sm glow-sm lg:hidden"
+        aria-label="Open schedule"
+      >
+        <Calendar className="size-4" />
+      </button>
+
+      {/* ════════ MODAL OVERLAY ════════ */}
       <PanelModal
         title={activeModal?.title ?? ""}
         icon={activeModal?.icon}
